@@ -82,6 +82,19 @@
             height: 100vh;
         }
 
+        #coords-display {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 6px 10px;
+            font-size: 14px;
+            border: 1px solid white;
+            border-radius: 5px;
+            font-family: monospace;
+            z-index: 1001;
+        }
+
         @media (max-width: 768px) {
             .fullscreen-btn {
                 font-size: 12px;
@@ -91,42 +104,68 @@
             #date-render {
                 font-size: 14px;
             }
+
+            #coords-display {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
         }
     </style>
 </head>
 <body>
     <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()">Повноекранна карта (може лагати)</button>
-
     <p id="date-render">Дата рендеру: 02.08.2025</p>
 
     <div id="openseadragon-container">
         <div id="openseadragon"></div>
     </div>
+    <div id="coords-display">X: — Z: —</div>
 
     <script>
+        // Параметри зображення та межі в Minecraft
+        const imageWidth = 10064;
+        const imageHeight = 10064;
+        const mcTopLeft     = { x: -5024, z: -5024 };
+        const mcBottomRight = { x:  5039, z:  5039 };
+        const mcRangeX = mcBottomRight.x - mcTopLeft.x;
+        const mcRangeZ = mcBottomRight.z - mcTopLeft.z;
+
         const viewer = OpenSeadragon({
             id: "openseadragon",
             prefixUrl: "https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.0.0/images/",
-            tileSources: "https://itsmksn.github.io/glowgrovefiles/dzi/output.dzi",
+            tileSources: "https://itsmksn.github.io/zharfiles/dzi/output.dzi",
             showNavigator: true,
             defaultZoomLevel: 1,
             minZoomLevel: 0.5,
             maxZoomLevel: 50
         });
 
+        // Відображення координат під курсором
+        const coordsDisplay = document.getElementById("coords-display");
+        viewer.addHandler("canvas-hover", function(event) {
+            const vpPoint    = viewer.viewport.pointFromPixel( event.position );
+            const imgPoint   = viewer.viewport.viewportToImageCoordinates( vpPoint );
+            const px = imgPoint.x;
+            const py = imgPoint.y;
+
+            const x_mc = Math.round( mcTopLeft.x + (px / imageWidth) * mcRangeX );
+            const z_mc = Math.round( mcTopLeft.z + (py / imageHeight) * mcRangeZ );
+
+            coordsDisplay.textContent = `X: ${x_mc}   Z: ${z_mc}`;
+        });
+
+        // Функція повноекранного режиму
         function toggleFullscreen() {
             const body = document.body;
-            const mapContainer = document.getElementById('openseadragon');
-            const fullscreenBtn = document.getElementById('fullscreen-btn');
-            const dateRender = document.getElementById('date-render');
-
-            if (!mapContainer.classList.contains('fullscreen')) {
-                mapContainer.classList.add('fullscreen');
-                fullscreenBtn.classList.add('small');
+            const map = document.getElementById('openseadragon');
+            const btn = document.getElementById('fullscreen-btn');
+            if (!map.classList.contains('fullscreen')) {
+                map.classList.add('fullscreen');
+                btn.classList.add('small');
                 body.classList.add('fullscreen-mode');
             } else {
-                mapContainer.classList.remove('fullscreen');
-                fullscreenBtn.classList.remove('small');
+                map.classList.remove('fullscreen');
+                btn.classList.remove('small');
                 body.classList.remove('fullscreen-mode');
             }
         }
