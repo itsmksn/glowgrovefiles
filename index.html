@@ -161,6 +161,14 @@
             });
         });
 
+        viewer.addOnceHandler("open", function() {
+            viewer.drawer.useCanvas = true;
+            viewer.drawer.context.imageSmoothingEnabled = false;
+            viewer.drawer.context.webkitImageSmoothingEnabled = false;
+            viewer.drawer.context.mozImageSmoothingEnabled = false;
+            viewer.drawer.context.msImageSmoothingEnabled = false;
+            viewer.drawer.context.oImageSmoothingEnabled = false;
+        });
         function toggleFullscreen() {
             const body = document.body;
             const map = document.getElementById('openseadragon');
