@@ -122,53 +122,49 @@
     <div id="coords-display">X: — Z: —</div>
 
     <script>
-        // Розміри зображення й межі в Minecraft
-        const imageWidth    = 10064;
-        const imageHeight   = 10064;
-        const mcTopLeft     = { x: -5024, z: -5024 };
-        const mcBottomRight = { x:  5039, z:  5039 };
+        const imageWidth = 10064;
+        const imageHeight = 10064;
+        const mcTopLeft = { x: -5024, z: -5024 };
+        const mcBottomRight = { x: 5039, z: 5039 };
         const mcRangeX = mcBottomRight.x - mcTopLeft.x;
         const mcRangeZ = mcBottomRight.z - mcTopLeft.z;
 
         const viewer = OpenSeadragon({
             id: "openseadragon",
             prefixUrl: "https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.0.0/images/",
-            tileSources: "https://itsmksn.github.io/glowgrovefiles/dzi/output.dzi",
+            tileSources: "https://itsmksn.github.io/zharfiles/dzi/output.dzi",
             showNavigator: true,
             defaultZoomLevel: 1,
-            minZoomLevel: 0.3,
-            maxZoomLevel: 45
+            minZoomLevel: 0.5,
+            maxZoomLevel: 50
         });
 
         const coordsDisplay = document.getElementById("coords-display");
 
-        // Винесемо обчислення в окрему функцію
         function updateCoords(webPoint) {
-            const vpPoint  = viewer.viewport.pointFromPixel(webPoint);
+            const osdPoint = new OpenSeadragon.Point(webPoint.x, webPoint.y);
+            const vpPoint = viewer.viewport.pointFromPixel(osdPoint);
             const imgPoint = viewer.viewport.viewportToImageCoordinates(vpPoint);
             const x_mc = Math.round(mcTopLeft.x + (imgPoint.x / imageWidth) * mcRangeX);
             const z_mc = Math.round(mcTopLeft.z + (imgPoint.y / imageHeight) * mcRangeZ);
             coordsDisplay.textContent = `X: ${x_mc}   Z: ${z_mc}`;
         }
 
-        // 1) Canvas-hover OpenSeadragon
-        viewer.addHandler("canvas-hover", function(event) {
-            if (event.position) updateCoords(event.position);
-        });
-
-        // 2) Додатково — нативний mousemove по контейнеру
-        viewer.addHandler("open", function() {
-            viewer.container.addEventListener("mousemove", function(e) {
+        viewer.addHandler("open", function () {
+            viewer.container.addEventListener("mousemove", function (e) {
                 const rect = viewer.container.getBoundingClientRect();
-                updateCoords({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                const mousePoint = {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+                updateCoords(mousePoint);
             });
         });
 
-        // Функція для повноекранного режиму
         function toggleFullscreen() {
             const body = document.body;
-            const map  = document.getElementById('openseadragon');
-            const btn  = document.getElementById('fullscreen-btn');
+            const map = document.getElementById('openseadragon');
+            const btn = document.getElementById('fullscreen-btn');
             if (!map.classList.contains('fullscreen')) {
                 map.classList.add('fullscreen');
                 btn.classList.add('small');
